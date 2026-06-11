@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECOE · Medicina Interna</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F9F8F6;
+    --surface: #FFFFFF;
+    --border: rgba(0,0,0,0.09);
+    --border-med: rgba(0,0,0,0.14);
+    --text: #1A1A18;
+    --muted: #6B6B67;
+    --faint: #A8A8A4;
+    --accent: #1A3A5C;
+    --accent-light: #E8EEF5;
+    --correct: #1B6B3A;
+    --correct-bg: #EDFAF3;
+    --wrong: #A32D2D;
+    --wrong-bg: #FDF0F0;
+    --warn-bg: #FEFAEE;
+    --warn: #85510B;
+    --pill-neuro: #534AB7;
+    --pill-neuro-bg: #EEEDFE;
+    --pill-neumol: #0F6E56;
+    --pill-neumol-bg: #E1F5EE;
+    --pill-cardio: #A32D2D;
+    --pill-cardio-bg: #FCEBEB;
+    --pill-derm: #854F0B;
+    --pill-derm-bg: #FAEEDA;
+    --pill-meta: #185FA5;
+    --pill-meta-bg: #E6F1FB;
+    --radius: 10px;
+    --radius-sm: 6px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.65;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+  }
+  .header-brand span { color: var(--text); font-weight: 600; }
+  .header-score {
+    font-size: 13px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .header-score strong { color: var(--text); }
+
+  /* ── LAYOUT ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    min-height: calc(100vh - 56px);
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 1.5rem 0;
+    position: sticky;
+    top: 56px;
+    height: calc(100vh - 56px);
+    overflow-y: auto;
+  }
+  .sidebar-section {
+    padding: 0 1rem;
+    margin-bottom: 0.25rem;
+  }
+  .sidebar-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--faint);
+    padding: 0 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .nav-case {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.12s;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .nav-case:hover { background: var(--bg); }
+  .nav-case.active { background: var(--accent-light); color: var(--accent); }
+  .nav-case.active .nav-num { background: var(--accent); color: #fff; }
+  .nav-num {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--border);
+    font-size: 10px;
+    font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .nav-case-name { flex: 1; line-height: 1.3; }
+  .nav-check {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    font-size: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .nav-check.done { background: var(--correct); color: #fff; }
+  .nav-check.partial { background: var(--warn-bg); border: 1px solid var(--warn); }
+
+  .sidebar-divider { height: 1px; background: var(--border); margin: 1rem 1rem; }
+
+  /* ── MAIN ── */
+  .main { padding: 2rem; max-width: 760px; }
+
+  /* ── SPECIALTY PILL ── */
+  .specialty-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 0.75rem;
+  }
+
+  /* ── CASE HEADER ── */
+  .case-header { margin-bottom: 1.5rem; }
+  .case-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+    margin-bottom: 0.25rem;
+  }
+  .case-meta { font-size: 13px; color: var(--muted); }
+
+  /* ── CLINICAL VIGNETTE ── */
+  .vignette {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.75rem;
+    font-size: 14px;
+    line-height: 1.75;
+    color: var(--text);
+    box-shadow: var(--shadow);
+    position: relative;
+  }
+  .vignette-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin-bottom: 0.75rem;
+  }
+  .vignette-highlight {
+    background: var(--accent-light);
+    border-left: 3px solid var(--accent);
+    padding: 0.75rem 1rem;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    margin-top: 1rem;
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+    line-height: 1.6;
+  }
+
+  /* ── PROGRESS ── */
+  .case-progress {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .progress-bar-wrap {
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+  .progress-label { font-size: 12px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+  /* ── QUESTION ── */
+  .question-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow);
+    transition: border-color 0.15s;
+  }
+  .question-card.answered { border-color: var(--border-med); }
+  .q-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 1rem;
+  }
+  .q-num {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--accent-light);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .q-text {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.55;
+    color: var(--text);
+  }
+  .options { display: flex; flex-direction: column; gap: 6px; padding-left: 34px; }
+  .option-btn {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--bg);
+    cursor: pointer;
+    transition: border-color 0.12s, background 0.12s;
+    text-align: left;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--text);
+    width: 100%;
+  }
+  .option-btn:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-light); }
+  .option-btn:disabled { cursor: default; }
+  .option-btn.correct { background: var(--correct-bg); border-color: var(--correct); color: var(--correct); }
+  .option-btn.wrong { background: var(--wrong-bg); border-color: var(--wrong); color: var(--wrong); }
+  .option-btn.reveal-correct { background: var(--correct-bg); border-color: var(--correct); color: var(--correct); }
+  .opt-letter {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--border);
+    font-size: 10px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    color: var(--muted);
+  }
+  .option-btn.correct .opt-letter { background: var(--correct); color: #fff; }
+  .option-btn.wrong .opt-letter { background: var(--wrong); color: #fff; }
+  .option-btn.reveal-correct .opt-letter { background: var(--correct); color: #fff; }
+
+  /* ── FEEDBACK ── */
+  .feedback {
+    margin-top: 0.75rem;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    line-height: 1.6;
+    display: none;
+    margin-left: 34px;
+  }
+  .feedback.show { display: block; }
+  .feedback.correct { background: var(--correct-bg); color: var(--correct); border-left: 3px solid var(--correct); }
+  .feedback.wrong { background: var(--wrong-bg); color: var(--wrong); border-left: 3px solid var(--wrong); }
+  .feedback strong { font-weight: 600; }
+
+  /* ── RESULTS CARD ── */
+  .results-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    text-align: center;
+    box-shadow: var(--shadow);
+    margin-bottom: 1.5rem;
+  }
+  .results-score-big {
+    font-size: 56px;
+    font-weight: 600;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 0.25rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .results-label { font-size: 14px; color: var(--muted); margin-bottom: 1.5rem; }
+  .results-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-top: 1.25rem;
+  }
+  .result-stat {
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem 0.5rem;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .result-stat strong { display: block; font-size: 22px; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
+
+  /* ── NAV BUTTONS ── */
+  .case-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-med);
+    background: var(--surface);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s;
+    font-family: inherit;
+  }
+  .btn:hover { background: var(--bg); border-color: var(--border-med); }
+  .btn:disabled { opacity: 0.4; cursor: default; }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  .btn-primary:hover { background: #152E4A; border-color: #152E4A; }
+
+  /* ── WELCOME ── */
+  .welcome {
+    padding: 3rem 2rem;
+    max-width: 640px;
+  }
+  .welcome-title { font-size: 26px; font-weight: 600; line-height: 1.2; margin-bottom: 0.75rem; }
+  .welcome-sub { color: var(--muted); font-size: 15px; margin-bottom: 2rem; line-height: 1.6; }
+  .spec-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 2rem;
+  }
+  .spec-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    box-shadow: var(--shadow);
+  }
+  .spec-card-title { font-weight: 600; font-size: 13px; margin-bottom: 2px; }
+  .spec-card-info { font-size: 12px; color: var(--muted); }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-med); border-radius: 2px; }
+
+  @media (max-width: 640px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .main { padding: 1.25rem; }
+    .results-grid { grid-template-columns: 1fr 1fr; }
+    .spec-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-brand">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+      <rect x="1" y="1" width="16" height="16" rx="4" stroke="currentColor" stroke-width="1.5"/>
+      <path d="M9 5v8M5 9h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+    <span>ECOE</span> · Medicina Interna
+  </div>
+  <div class="header-score">
+    Respondidas: <strong id="total-answered">0</strong> / <strong id="total-questions">46</strong>
+    &nbsp;·&nbsp; Correctas: <strong id="total-correct">0</strong>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" id="sidebar"></nav>
+  <main class="main" id="main-content"></main>
+</div>
+
+<script>
+const CASES = [
+  {
+    id: 0,
+    title: "IAMCEST inferior + ventrículo derecho",
+    specialty: "cardio",
+    specialtyLabel: "Cardio · SCA",
+    vignette: `Hombre de 65 años con tabaquismo activo (30 paquetes-año), HTA en manejo con amlodipino 5 mg/día y dislipidemia sin tratamiento. Consulta a urgencias por dolor precordial opresivo de 2 horas, irradiado al hombro derecho, con diaforesis profusa y náuseas.
+
+Examen físico: TA 88/60 mmHg, FC 55 lpm, FR 18 rpm, SatO₂ 95% AA. Pulmones limpios. Ingurgitación yugular a 45° de 4 cm sobre el ángulo esternal. Sin edemas.`,
+    paraclinical: `ECG: Ritmo sinusal. Elevación ST 3 mm (cóncavo) en II, III, aVF. Infradesnivel ST 2 mm en DI y aVL. Elevación ST 2 mm en V4R. Troponinas ultrasensibles: 850 ng/L (VN < 20). Ecocardiograma urgente: hipocinesia pared inferior-posterior VI + dilatación y disfunción severa VD (TAPSE 9 mm).`,
+    questions: [
+      {
+        text: "¿Cuál es el diagnóstico electrocardiográfico más completo y preciso?",
+        options: ["IAMCEST anterior con bloqueo de rama derecha","IAMCEST inferior con extensión al ventrículo derecho","IAMCEST lateral alto con supradesnivel en DI y aVL","SCASEST de alto riesgo por cambios difusos del ST","Pericarditis aguda con compromiso difuso del segmento ST"],
+        correct: 1,
+        explanation: "La elevación del ST en II, III y aVF señala territorio inferior (coronaria derecha). La elevación en V4R confirma extensión al VD. Los cambios recíprocos en DI/aVL son clásicos del IAMCEST inferior y descartan pericarditis (que es difusa, cóncava y sin reciprocidad)."
+      },
+      {
+        text: "La combinación de hipotensión, bradicardia, campos pulmonares limpios e ingurgitación yugular es más característica de:",
+        options: ["Choque cardiogénico por disfunción severa del VI con congestión pulmonar","Neumotórax a tensión con desviación mediastinal","Choque obstructivo por taponamiento cardiaco","Choque por infarto del ventrículo derecho sin falla del VI","Reacción vagal transitoria sin compromiso hemodinámico real"],
+        correct: 3,
+        explanation: "La tríada del infarto de VD: hipotensión + campos pulmonares limpios + PVY elevada, con bradicardia refleja, es patognomónica. El taponamiento puede simularla, pero el ECG y el ecocardiograma definen el diagnóstico."
+      },
+      {
+        text: "¿Cuál es el manejo hemodinámico inicial más adecuado dado su perfil clínico?",
+        options: ["Furosemida 40 mg IV y restricción hídrica para reducir la precarga del VD","Dobutamina a dosis alta como inotrópico de primera línea sin carga de volumen","Carga con solución salina 0.9% 500 mL IV en bolo para optimizar precarga del VD","Nitroprusiato de sodio IV para reducir poscarga del VI y del VD","Metoprolol IV para control de FC y protección miocárdica"],
+        correct: 2,
+        explanation: "El VD infartado es precarga-dependiente. Los diuréticos y nitratos están CONTRAINDICADOS porque reducen la precarga y pueden precipitar colapso circulatorio. El primer paso es optimizar la precarga con volumen. El metoprolol está contraindicado en choque."
+      },
+      {
+        text: "El paciente está en un centro sin hemodinámica y el traslado tarda 3 horas. La conducta correcta para reperfusión es:",
+        options: ["Trombolisis inmediata con estreptoquinasa 1.5 millones UI IV y traslado posterior","Esperar traslado sin reperfusión porque la trombolisis está contraindicada en infarto de VD","Iniciar heparina no fraccionada y traslado urgente sin trombolisis","Trombolisis con alteplasa y contraindicación de traslado por 24 horas","Doble antiagregación como único manejo mientras se coordina ICP primaria"],
+        correct: 0,
+        explanation: "Si el tiempo puerta-balón supera 120 minutos y no hay contraindicaciones, la trombolisis es el estándar. La trombolisis NO está contraindicada en infarto de VD; es el compromiso hemodinámico el que define urgencia."
+      },
+      {
+        text: "¿Qué fármaco de la siguiente lista está CONTRAINDICADO en este paciente durante la fase aguda?",
+        options: ["Ácido acetilsalicílico 300 mg vía oral","Clopidogrel 300 mg dosis de carga oral","Nitroglicerina sublingual o IV","Morfina IV 2-4 mg para analgesia","Heparina no fraccionada en infusión IV"],
+        correct: 2,
+        explanation: "La nitroglicerina y todos los nitratos son contraindicados absolutos en el infarto de VD porque la reducción de precarga en un VD que depende de ella puede precipitar colapso cardiovascular irreversible."
+      }
+    ]
+  },
+  {
+    id: 1,
+    title: "SCASEST de alto riesgo",
+    specialty: "cardio",
+    specialtyLabel: "Cardio · SCA",
+    vignette: `Mujer de 62 años con DM2 de 10 años, dislipidemia e HTA. Niega tabaquismo. Episodios recurrentes de dolor retroesternal opresivo en reposo durante las últimas 24 h, cada uno de 15-20 min, el último hace 45 min. Diaforesis y mareo.
+
+PA 145/90 mmHg, FC 96 lpm, SatO₂ 97%. Pulmones limpios.`,
+    paraclinical: `ECG: Ritmo sinusal. Infradesnivel ST 1.5 mm en V4-V6 y DI. Sin elevación del ST. Sin ondas Q. TnT-us al ingreso: 48 ng/L (VN < 14). TnT-us a 2h: 95 ng/L. Score GRACE: 145 puntos. Ecocardiografía: FEVI 55%, sin alteraciones segmentarias en reposo.`,
+    questions: [
+      {
+        text: "La cinética de troponinas (48 → 95 ng/L en 2 horas) es diagnóstica de:",
+        options: ["Lesión miocárdica crónica sin necrosis activa","Infarto agudo de miocardio sin elevación del ST (IAMSEST)","Miocarditis aguda ya que la troponina no es específica de SCA","Resultado limítrofe, se debe esperar la troponina de 6 horas","Falsa elevación por insuficiencia renal crónica de la paciente"],
+        correct: 1,
+        explanation: "Algoritmo 0h/2h ESC para TnT-us: valor inicial > 52 ng/L O delta a 2h ≥ 6 ng/L confirman IAMSEST. Aquí el delta es +47 ng/L (muy por encima de 6). La elevación crónica no tiene delta significativo."
+      },
+      {
+        text: "Con score GRACE de 145 puntos, la coronariografía debe realizarse:",
+        options: ["De forma inmediata (< 2 horas) como en el IAMCEST","De forma precoz (< 24 horas) por alto riesgo isquémico","De forma electiva en 72 horas porque no hay elevación del ST","No se indica coronariografía porque la FEVI es normal","En 48-72 horas independientemente del score GRACE"],
+        correct: 1,
+        explanation: "GRACE > 140 equivale a alto riesgo. La guía ESC indica estrategia invasiva precoz (< 24 h) en IAMSEST de alto riesgo. La estrategia inmediata (< 2h) se reserva para inestabilidad hemodinámica o arritmias malignas."
+      },
+      {
+        text: "¿Cuál es el esquema de antiagregación dual más apropiado mientras se define la estrategia invasiva?",
+        options: ["AAS 100 mg + Clopidogrel 75 mg/día sin dosis de carga","AAS 300 mg dosis de carga + Ticagrelor 180 mg dosis de carga","AAS 300 mg + Prasugrel 60 mg dosis de carga de inicio inmediato","AAS 300 mg + Warfarina sin antiagregante adicional","Monoterapia con Ticagrelor sin AAS para reducir sangrado"],
+        correct: 1,
+        explanation: "El ticagrelor es preferido al clopidogrel en SCASEST de alto riesgo (acción más rápida, mayor reducción de eventos). El prasugrel NO debe darse antes de conocer anatomía coronaria. AAS+ticagrelor es el estándar actual."
+      },
+      {
+        text: "La paciente desarrolla IRA con creatinina 2.1 mg/dL tras coronariografía. ¿Qué medida DEBIÓ implementarse antes del procedimiento?",
+        options: ["N-acetilcisteína oral 600 mg c/12h el día anterior","Hidratación con solución salina o bicarbonato de sodio IV periprocesal","Furosemida profiláctica para inducir diuresis forzada","Ninguna medida es efectiva; la nefropatía por contraste no es prevenible","Hemodiálisis profiláctica antes del contraste en todo paciente diabético"],
+        correct: 1,
+        explanation: "La hidratación con SSN 0.9% o bicarbonato IV es la única medida con evidencia sólida para prevenir nefropatía por contraste. La N-acetilcisteína tiene evidencia débil y ya no se recomienda de rutina."
+      },
+      {
+        text: "Tras ICP exitosa, ¿cuál es la duración mínima recomendada de la DAPT con stent farmacoactivo (DES)?",
+        options: ["1 mes si se usó stent metálico convencional (BMS)","3 meses si el riesgo de sangrado es alto","6 meses como estándar con DES en ausencia de alto riesgo hemorrágico","12 meses obligatorios independientemente del stent y riesgo hemorrágico","24 meses en pacientes diabéticos por alto riesgo de trombosis tardía"],
+        correct: 2,
+        explanation: "Las guías actuales recomiendan 6 meses de DAPT como duración estándar post-ICP con DES en IAMSEST sin alto riesgo hemorrágico. En pacientes con alto riesgo hemorrágico puede acortarse a 1-3 meses."
+      }
+    ]
+  },
+  {
+    id: 2,
+    title: "Falla cardiaca aguda descompensada",
+    specialty: "cardio",
+    specialtyLabel: "Cardio · Falla",
+    vignette: `Hombre de 74 años con FEVIr conocida (FEVI basal 30%), portador de marcapasos definitivo por BAVC. Disnea progresiva de 5 días, ortopnea, ganancia de 5 kg en 8 días, edema bilateral de miembros inferiores.
+
+TA 95/65 mmHg, FC 88 lpm (ritmo MP), FR 28 rpm, SatO₂ 86% AA (89% con O₂ 3 L/min). Ingurgitación yugular 8 cm a 45°. Crepitantes bibasales hasta campos medios. Edema ++/++++ MMII.`,
+    paraclinical: `BNP: 1850 pg/mL. Creatinina: 1.8 mg/dL. Na: 131 mEq/L. K: 5.1 mEq/L. Rx tórax: cardiomegalia global (ICT 0.62), redistribución vascular, líneas B de Kerley, derrame pleural bilateral. ECG: ritmo de marcapasos ventricular con morfología BRIHH.`,
+    questions: [
+      {
+        text: "La clasificación hemodinámica de Stevenson-Forrester para este paciente corresponde a:",
+        options: ["Perfil A (seco-caliente): euvolémico con buena perfusión","Perfil B (húmedo-caliente): congestión sin hipoperfusión","Perfil C (húmedo-frío): congestión con hipoperfusión","Perfil L (seco-frío): hipoperfusión sin congestión","No es clasificable sin catéter de arteria pulmonar"],
+        correct: 2,
+        explanation: "El perfil C (húmedo-frío) se define por signos de congestión (crepitantes, edemas, IY elevada, Rx compatible) + signos de hipoperfusión (TA 95/65 mmHg, Na bajo, oliguria implícita). Es el perfil de mayor gravedad."
+      },
+      {
+        text: "¿Cuál es la medida más urgente para mejorar la oxigenación en este paciente?",
+        options: ["Intubación orotraqueal inmediata y ventilación mecánica controlada","CPAP o BiPAP (ventilación no invasiva)","Oxígeno por mascarilla de reservorio a alto flujo como única intervención","Broncoscopía urgente para descartar ocupación endobronquial","Furosemida inhalatoria como broncodilatador y diurético simultáneo"],
+        correct: 1,
+        explanation: "La VNI (CPAP/BiPAP) está indicada en edema pulmonar agudo con FR > 25 rpm y SatO₂ < 90% a pesar de O₂ suplementario. Reduce la necesidad de intubación y mejora la mortalidad. La intubación se reserva cuando la VNI falla."
+      },
+      {
+        text: "¿Cuál es la estrategia diurética más correcta?",
+        options: ["Furosemida 20 mg oral como inicio para evitar deshidratación brusca","Furosemida IV en dosis equivalente a 2.5 veces la dosis oral previa del paciente","Espironolactona como único diurético dado el K⁺ de 5.1 mEq/L","Hidroclorotiazida oral ya que furosemida está contraindicada con Cr > 1.5 mg/dL","Restricción hídrica sin diuréticos hasta realizar ecocardiograma"],
+        correct: 1,
+        explanation: "En FCA descompensada se prefiere furosemida IV (mayor biodisponibilidad). La dosis IV debe ser ≥ la dosis oral previa; en congestión severa se recomienda 2.5x la oral previa. La creatinina leve no contraindica furosemida."
+      },
+      {
+        text: "¿Cuál es la conducta correcta respecto a vasodilatadores con TA de 95/65 mmHg?",
+        options: ["Nitroglicerina IV a dosis bajas para reducir precarga sin comprometer la TA","Nitroprusiato de sodio IV por su acción arteriovenosa equilibrada","Los vasodilatadores están contraindicados con TA sistólica < 100 mmHg","Nesiritida IV como análogo de BNP para mejorar diuresis y reducir precarga","Hidralazina IV como vasodilatador arterial de primera línea"],
+        correct: 2,
+        explanation: "Los vasodilatadores IV (nitroglicerina, nitroprusiato) están CONTRAINDICADOS cuando la TAS < 100 mmHg. En el perfil C con hipoperfusión, el tratamiento correcto es inotrópico (dobutamina) para mejorar el gasto cardiaco."
+      },
+      {
+        text: "En el manejo crónico ambulatorio de FEVIr, ¿cuál combinación representa el pilar fundamental con mayor evidencia de reducción de mortalidad?",
+        options: ["Digoxina + espironolactona + furosemida","IECA o ARNI + betabloqueador + ARM + iSGLT2","ARA II + calcioantagonista + diurético de asa","Ivabradina + amiodarona + betabloqueador","Hidralazina + nitratos + aspirina como alternativa universal a IECA"],
+        correct: 1,
+        explanation: "Los 4 pilares de mortalidad en FEVIr son: IECA/ARNI (sacubitrilo-valsartán) + betabloqueador + ARM (espironolactona/eplerenona) + iSGLT2 (dapagliflozina/empagliflozina). La 'terapia cuádruple' actual reduce mortalidad de forma independiente y aditiva."
+      }
+    ]
+  },
+  {
+    id: 3,
+    title: "DM2 con síndrome metabólico y ERC",
+    specialty: "meta",
+    specialtyLabel: "Metabólico",
+    vignette: `Mujer de 58 años con DM2 de 12 años, HTA, dislipidemia y obesidad central (PA 102 cm). Antecedente de IAM hace 3 años. En manejo con metformina 850 mg c/12h y sitagliptina 100 mg/día. Sin ajuste del tratamiento en 6 meses.
+
+TA 148/90 mmHg, IMC 32 kg/m². Fondo de ojo: retinopatía diabética no proliferativa moderada bilateral.`,
+    paraclinical: `HbA1c: 8.8%. Glucemia ayunas: 210 mg/dL. Creatinina: 1.6 mg/dL. TFG (CKD-EPI): 38 mL/min/1.73m². RAC: 180 mg/g. LDL: 98 mg/dL. Triglicéridos: 210 mg/dL. HDL: 38 mg/dL.`,
+    questions: [
+      {
+        text: "Según CKD-EPI, esta paciente tiene ERC clasificada como:",
+        options: ["ERC G3a-A1: TFG 38 y albuminuria < 30 mg/g","ERC G3b-A2: TFG 38 y albuminuria 180 mg/g","ERC G4-A3: TFG < 30 y albuminuria > 300 mg/g","ERC G2-A2: TFG 38 está dentro del rango G2 (60-89 mL/min)","Daño renal sin ERC porque la paciente aún no tiene síntomas urémicos"],
+        correct: 1,
+        explanation: "G3b corresponde a TFG 30-44 mL/min (38 está en ese rango). A2 corresponde a RAC 30-300 mg/g (180 mg/g). La estadificación combina G (TFG) + A (albuminuria). No se requieren síntomas urémicos para el diagnóstico."
+      },
+      {
+        text: "¿Cuál medicamento hipoglucemiante debe suspenderse considerando la función renal actual?",
+        options: ["Sitagliptina, porque los iDPP-4 están contraindicados con TFG < 45","Metformina, porque está contraindicada con TFG < 30 pero puede continuar con ajuste hasta TFG 30","Metformina, porque está contraindicada con cualquier grado de ERC","Sitagliptina, porque empeora la proteinuria en ERC","Ninguno; ambos son seguros a cualquier nivel de función renal"],
+        correct: 1,
+        explanation: "La metformina puede usarse con precaución hasta TFG 30 mL/min. Con TFG de 38 (G3b) puede continuar con monitoreo. Con TFG < 30 DEBE suspenderse por riesgo de acidosis láctica. La sitagliptina puede continuar con ajuste de dosis en ERC."
+      },
+      {
+        text: "Con ERC G3b-A2 y antecedente de IAM, ¿qué hipoglucemiante ofrece el MAYOR beneficio cardiorrenal?",
+        options: ["Glibenclamida, por ser el sulfoniluréico de mayor potencia hipoglucemiante","Insulina glargina como monoterapia por seguridad en ERC avanzada","Inhibidor de SGLT2 (empagliflozina o dapagliflozina)","Acarbosa, porque retarda la absorción de glucosa sin efecto renal","Pioglitazona, dado su perfil cardioprotector en diabetes tipo 2"],
+        correct: 2,
+        explanation: "Los iSGLT2 tienen evidencia sólida de reducción de progresión de ERC y reducción de eventos cardiovasculares mayores en ECV establecida. Son la clase de elección en esta combinación ERC + ECV. Dapagliflozina y empagliflozina tienen indicación aprobada en ERC."
+      },
+      {
+        text: "La meta de HbA1c más apropiada para esta paciente con ERC G3b y antecedente de IAM es:",
+        options: ["< 6.5% para lograr la mayor reducción de complicaciones microvasculares","< 7.0% como meta estricta por su alto riesgo cardiovascular","< 8.0% porque la ERC contraindica metas estrictas de glucemia","< 8.5% dado el riesgo de hipoglucemia con TFG < 45","7.0-8.5% como rango permisivo en todo paciente mayor de 55 años"],
+        correct: 1,
+        explanation: "La meta HbA1c < 7.0% está indicada en ECV establecida sin hipoglucemia frecuente. Con TFG de 38 (G3b) una meta de 7.0% es apropiada. Metas muy estrictas (< 6.5%) aumentan el riesgo de hipoglucemia en ERC."
+      },
+      {
+        text: "¿Cuál es la meta de colesterol LDL para esta paciente?",
+        options: ["< 100 mg/dL por ser diabética con factores de riesgo adicionales","< 70 mg/dL por tener ECV establecida y diabetes","< 55 mg/dL por ser de muy alto riesgo cardiovascular (ECV + múltiples factores)","< 130 mg/dL como meta estándar en diabetes sin ECV documentada","La meta de LDL no aplica cuando los triglicéridos están elevados"],
+        correct: 2,
+        explanation: "Paciente con ECV establecida (IAM previo) + DM2 + HTA + dislipidemia = muy alto riesgo. Meta ESC/ACC para muy alto riesgo: LDL < 55 mg/dL. Con LDL de 98 mg/dL se requiere intensificar estatina y considerar ezetimiba."
+      }
+    ]
+  },
+  {
+    id: 4,
+    title: "Cetoacidosis diabética",
+    specialty: "meta",
+    specialtyLabel: "Metabólico",
+    vignette: `Hombre de 32 años, diabético tipo 1 de 8 años. Llega confuso, con 18h de vómitos (×5), poliuria y polidipsia desde hace 3 días coincidiendo con cuadro gripal. Abandonó la insulina hace 2 días por no comer. Olor a frutas en el aliento.
+
+TA 95/60 mmHg, FC 118 lpm, FR 28 rpm profundas y rítmicas, Temp 37.2°C. Mucosas secas, turgencia disminuida.`,
+    paraclinical: `Glucemia: 480 mg/dL. Na: 128 mEq/L. K: 5.8 mEq/L. HCO₃: 9 mEq/L. GSA: pH 7.12, PaCO₂ 22 mmHg, PaO₂ 88 mmHg. Lactato: 1.1 mmol/L. Cetonas urinarias: ++++. Creatinina: 1.9 mg/dL (basal 0.9). Anión gap: 31 mEq/L.`,
+    questions: [
+      {
+        text: "El patrón respiratorio descrito (FR 28, profundas y rítmicas) corresponde a:",
+        options: ["Respiración de Cheyne-Stokes por afectación neurológica central","Respiración de Kussmaul como mecanismo compensador de la acidosis metabólica","Respiración de Biot por lesión del centro respiratorio","Taquipnea por infección pulmonar concomitante con alcalosis respiratoria","Hiperventilación psicógena sin correlato ácido-base"],
+        correct: 1,
+        explanation: "La respiración de Kussmaul (profunda, rítmica, frecuente) es la respuesta respiratoria compensadora a la acidosis metabólica grave. El organismo reduce la PaCO₂ para compensar el pH bajo. El olor a frutas corresponde a la acetona espirada."
+      },
+      {
+        text: "¿Cuál de los siguientes criterios diagnósticos de CAD NO está presente en este caso?",
+        options: ["Glucemia > 250 mg/dL","pH arterial < 7.30","HCO₃ < 15 mEq/L","Anión gap elevado > 12 mEq/L","Osmolaridad sérica efectiva > 320 mOsm/kg"],
+        correct: 4,
+        explanation: "La hiperosmolaridad > 320 mOsm/kg es criterio del estado hiperosmolar hiperglucémico (EHH), no de la CAD. Los criterios de CAD son: glucemia > 250 + pH < 7.3 + HCO₃ < 18 + cetonemia/cetonuria. En CAD la osmolaridad puede ser normal o levemente elevada."
+      },
+      {
+        text: "El potasio sérico es 5.8 mEq/L al ingreso. ¿Cuál es la conducta correcta con el potasio antes de iniciar insulina?",
+        options: ["Iniciar insulina de inmediato; el potasio alto contraindica reposición pero no la insulinoterapia","Reponer potasio IV agresivamente antes de insulina porque el K sérico es falso en acidosis","Verificar función renal y ECG. Si K ≥ 3.5 mEq/L, iniciar insulina y monitorear potasio c/hora","Suspender la insulina hasta que el potasio baje a < 4.0 mEq/L con kayexalate","Iniciar insulina y kayexalate simultáneamente para manejar la hiperkalemia"],
+        correct: 2,
+        explanation: "En CAD el K sérico inicial puede estar elevado por efecto del pH, pero hay un déficit corporal total de potasio. Al iniciar insulina, el K extracelular entra a la célula y cae rápidamente. Si K inicial ≥ 3.5 se inicia insulina. Si K < 3.5 se REPONE primero."
+      },
+      {
+        text: "¿Cuál es el tipo de insulina y la vía de administración de elección en el manejo inicial de la CAD grave?",
+        options: ["Insulina NPH subcutánea cada 12 horas desde el inicio del manejo","Insulina regular IV en infusión continua a 0.1 UI/kg/hora","Insulina glargina subcutánea como análogo basal de acción prolongada","Insulina lispro subcutánea cada 4 horas según glucemia capilar","Insulina regular IM cada 2 horas hasta corrección de la acidosis"],
+        correct: 1,
+        explanation: "El estándar en CAD grave es insulina regular IV en infusión continua a 0.1 UI/kg/h, precedida de bolo IV 0.1 UI/kg. La vía IV garantiza predictibilidad en contexto de hipoperfusión periférica. Las insulinas basales no son adecuadas para el manejo agudo."
+      },
+      {
+        text: "¿En qué momento se debe añadir dextrosa a los líquidos de hidratación durante el manejo de la CAD?",
+        options: ["Desde el inicio para evitar hipoglucemia con la insulinoterapia","Cuando la glucemia baje a ≤ 250 mg/dL, aunque la acidosis no se haya corregido","Solo cuando la acidosis esté completamente corregida (pH > 7.35)","Nunca; la dextrosa está contraindicada en CAD porque empeora la hiperglucemia","Cuando la glucemia sea < 100 mg/dL para prevenir hipoglucemia severa"],
+        correct: 1,
+        explanation: "Cuando la glucemia llega a 250 mg/dL se agrega dextrosa 5% para permitir continuar la insulina (que aún se necesita para corregir la acidosis y la cetonemia) sin producir hipoglucemia. La insulina debe continuar hasta pH > 7.3 y HCO₃ > 15."
+      }
+    ]
+  },
+  {
+    id: 5,
+    title: "Hipotiroidismo primario",
+    specialty: "meta",
+    specialtyLabel: "Metabólico",
+    vignette: `Mujer de 45 años, sin antecedentes conocidos. Fatiga progresiva de 6 meses, aumento de peso de 8 kg, intolerancia al frío, constipación, piel seca y caída del cabello.
+
+FC 54 lpm, TA 130/82 mmHg, IMC 31 kg/m². Piel seca y engrosada, edema periorbitario, relajación lenta de reflejos osteotendinosos. Tiroides no palpable.`,
+    paraclinical: `TSH: 48 mUI/L (VR 0.4-4.0). T4 libre: 0.4 ng/dL (VR 0.8-1.8). Hb: 10.2 g/dL, VCM: 102 fL. Colesterol total: 280 mg/dL, LDL: 185 mg/dL, TG: 240 mg/dL. Glucemia ayunas: 102 mg/dL.`,
+    questions: [
+      {
+        text: "¿Cuál es la causa más probable del perfil lipídico alterado en esta paciente?",
+        options: ["Hiperlipidemia familiar combinada como entidad independiente","Hipotiroidismo primario como causa secundaria de dislipidemia","Dieta hipercalórica como única causa del perfil lipídico","Síndrome de Cushing con hipercortisolismo como causa de dislipidemia","Uso de betabloqueadores que elevan triglicéridos"],
+        correct: 1,
+        explanation: "El hipotiroidismo produce dislipidemia secundaria: aumento de LDL (reducción del aclaramiento por downregulation del receptor LDL), hipertrigliceridemia y reducción de HDL. El tratamiento del hipotiroidismo mejora el perfil lipídico. No se debe iniciar estatina sin tratar primero el hipotiroidismo."
+      },
+      {
+        text: "¿Cuál es el tratamiento inicial de elección y la dosis de inicio adecuada?",
+        options: ["Levotiroxina 200 mcg/día como dosis plena desde el inicio","Levotiroxina 25-50 mcg/día con ajuste gradual cada 4-6 semanas","Triyodotironina (T3) oral como hormona activa de mayor potencia","Propiltiouracilo dado que la TSH alta indica hiperactividad tiroidea","No requiere tratamiento; el hipotiroidismo subclínico es benigno"],
+        correct: 1,
+        explanation: "La levotiroxina es el tratamiento de elección. La dosis inicial debe ser baja (25-50 mcg/día) para evitar precipitar angina o arritmias, especialmente en mujeres de edad media. La dosis se ajusta cada 4-6 semanas guiada por TSH. La T3 no es el estándar de manejo."
+      },
+      {
+        text: "La anemia de esta paciente (Hb 10.2 g/dL, VCM 102 fL) es más compatible con:",
+        options: ["Anemia ferropénica por deficiencia de hierro en el contexto del hipotiroidismo","Anemia hemolítica autoinmune asociada a tiroiditis de Hashimoto","Anemia macrocítica asociada a hipotiroidismo o deficiencia de B12 concomitante","Anemia de enfermedad crónica normocítica por la inflamación del hipotiroidismo","Policitemia relativa por hemoconcentración secundaria a la mixedema"],
+        correct: 2,
+        explanation: "El hipotiroidismo puede causar anemia macrocítica: efecto directo sobre eritropoyesis, déficit de B12 (asociación con anemia perniciosa en tiroiditis autoinmune) o déficit de folato. El VCM 102 fL confirma macrocitosis. Se deben medir B12 y folato antes de tratar."
+      }
+    ]
+  },
+  {
+    id: 6,
+    title: "EPOC exacerbación grave, clasificación GOLD",
+    specialty: "neumo",
+    specialtyLabel: "Neumología",
+    vignette: `Hombre de 66 años, ex-fumador (45 paquetes-año, dejó hace 3 años), con EPOC diagnosticado hace 5 años. Manejo actual: tiotropio 18 mcg/día + salbutamol de rescate. Cuatro exacerbaciones en el último año (2 hospitalizaciones). mMRC grado 3.
+
+Consulta por aumento de disnea, tos con esputo purulento verde-amarillento, 3 días de evolución. TA 135/85, FC 105, FR 32, SatO₂ 84% AA, Temp 38.1°C. Uso de músculos accesorios. Tórax en tonel. Sibilancias espiratorias difusas y crepitantes en bases.`,
+    paraclinical: `GSA: pH 7.29, PaCO₂ 58 mmHg, PaO₂ 52 mmHg, HCO₃ 26 mEq/L. Espirometría previa (estable): FEV₁ 38%, FEV₁/FVC 0.58, sin respuesta significativa al broncodilatador (cambio FEV₁ < 5%).`,
+    questions: [
+      {
+        text: "Según la clasificación GOLD 2023, la evaluación combinada de este paciente corresponde a:",
+        options: ["GOLD A: FEV₁ 38%, pocas exacerbaciones, pocos síntomas","GOLD B: FEV₁ 38%, pocas exacerbaciones, muchos síntomas","GOLD E: FEV₁ 38%, ≥ 2 exacerbaciones o 1 hospitalización en el último año, sin importar síntomas","GOLD D (clasificación anterior): FEV₁ < 50%, muchos síntomas y exacerbaciones frecuentes","No es clasificable GOLD sin espirometría postbroncodilatador reciente"],
+        correct: 2,
+        explanation: "Desde GOLD 2023 el grupo D fue eliminado. La clasificación combinada es: A (0-1 exac. sin hosp, mMRC 0-1), B (0-1 exac. sin hosp, mMRC ≥ 2), E (≥ 2 exacerbaciones O ≥ 1 hospitalización, independientemente de síntomas). 4 exacerbaciones con 2 hospitalizaciones = grupo E."
+      },
+      {
+        text: "pH 7.29, PaCO₂ 58, HCO₃ 26. ¿Cuál es la interpretación correcta del trastorno ácido-base?",
+        options: ["Acidosis metabólica con compensación respiratoria inadecuada","Alcalosis respiratoria crónica compensada con retención de HCO₃","Acidosis respiratoria aguda sobre crónica (agudización de hipercapnia preexistente)","Acidosis respiratoria aguda pura sin componente metabólico","Trastorno mixto: acidosis metabólica y alcalosis respiratoria simultáneas"],
+        correct: 2,
+        explanation: "pH bajo (acidosis) + PaCO₂ alto (causa primaria respiratoria) + HCO₃ 26 (compensación parcial crónica, > 24). En acidosis respiratoria aguda pura el HCO₃ sube ~1 mEq por cada 10 mmHg de CO₂ (esperado: 25.8). El HCO₃ de 26 sugiere compensación parcial crónica con agudización."
+      },
+      {
+        text: "¿Cuál es la intervención respiratoria más apropiada para este paciente?",
+        options: ["Oxígeno al 100% por mascarilla de reservorio para corregir la hipoxemia agresivamente","Ventilación no invasiva (BiPAP) para manejar la hipercapnia y reducir trabajo respiratorio","Intubación orotraqueal inmediata ante cualquier valor de pH < 7.35","Broncodilatadores nebulizados como única intervención sin VNI","Heliox (mezcla helio-oxígeno) como medida de primera línea en exacerbación de EPOC"],
+        correct: 1,
+        explanation: "La VNI (BiPAP) es el estándar en exacerbación grave de EPOC con hipercapnia y acidosis (pH 7.25-7.35). Reduce mortalidad, necesidad de intubación y estancia hospitalaria. El O₂ al 100% puede empeorar la hipercapnia (efecto Haldane, supresión del drive hipóxico)."
+      },
+      {
+        text: "¿Cuál es el antibiótico de primera línea más apropiado para esta exacerbación (esputo purulento, sin factores de riesgo para Pseudomonas)?",
+        options: ["Piperacilina-tazobactam IV como cobertura de amplio espectro de inicio","Amoxicilina-clavulanato oral o ampicilina-sulbactam IV","Azitromicina en monoterapia como primera línea universal en EPOC","Vancomicina IV por riesgo de S. aureus resistente en EPOC severo","No se indica antibiótico; el cambio de esputo no es criterio suficiente"],
+        correct: 1,
+        explanation: "Con criterios de Anthonisen completos (aumento disnea + aumento esputo + purulencia) y sin factores de riesgo para Pseudomonas, la primera línea es amoxicilina-clavulanato. La piperacilina-tazobactam se reserva para riesgo de Pseudomonas (FEV₁ < 30%, hospitalizaciones frecuentes)."
+      },
+      {
+        text: "En cuanto al manejo broncodilatador durante la exacerbación, ¿cuál es la conducta correcta?",
+        options: ["Suspender tiotropio durante la exacerbación y usar solo broncodilatadores IV","SABA (salbutamol) nebulizado + SAMA (ipratropio) nebulizado como primera línea","Salmeterol nebulizado como LABA de elección en la fase aguda","Aminofilina IV como broncodilatador de primera línea en exacerbación grave","Solo salbutamol inhalado; la combinación con ipratropio no aporta beneficio adicional"],
+        correct: 1,
+        explanation: "En exacerbación de EPOC el tratamiento broncodilatador de primera línea es la combinación SABA (salbutamol) + SAMA (ipratropio) nebulizados. La combinación es superior a la monoterapia. La aminofilina tiene pobre índice terapéutico y no se recomienda de rutina."
+      }
+    ]
+  },
+  {
+    id: 7,
+    title: "Crisis asmática grave",
+    specialty: "neumo",
+    specialtyLabel: "Neumología",
+    vignette: `Mujer de 28 años con asma bronquial de 6 años. Manejo habitual: budesonida/formoterol 160/4.5 mcg 2 inh c/12h + salbutamol de rescate (3-4 veces/semana). Disnea progresiva de 4 horas que no cede con salbutamol en casa (6 disparos en 2 horas).
+
+Agitada, dificultad para hablar frases completas. FR 34 rpm, FC 118 lpm, SatO₂ 90% AA. Sibilancias difusas en todos los campos, uso de músculos accesorios, tirajes intercostales. PEF: 35% del predicho.`,
+    paraclinical: `GSA: pH 7.49, PaCO₂ 31 mmHg, PaO₂ 68 mmHg, HCO₃ 24 mEq/L.`,
+    questions: [
+      {
+        text: "La clasificación de la gravedad de esta crisis asmática según GINA es:",
+        options: ["Crisis leve: disnea al hablar pero SatO₂ > 90%","Crisis moderada: SatO₂ 90-94% y PEF 40-69%","Crisis grave: SatO₂ < 92%, PEF < 40%, dificultad para hablar, FR > 30","Crisis casi fatal: PaCO₂ normal o elevada en contexto de disnea severa","No clasificable sin espirometría completa"],
+        correct: 2,
+        explanation: "Criterios de crisis grave según GINA: SatO₂ < 92%, PEF < 40%, incapacidad de completar frases, FR > 30, FC > 120, uso de músculos accesorios. Esta paciente cumple TODOS. La PaCO₂ baja (31) indica hiperventilación compensadora; si fuera normal/alta indicaría fatiga respiratoria inminente."
+      },
+      {
+        text: "¿Cuál es la intervención terapéutica más urgente para esta paciente?",
+        options: ["Intubación orotraqueal inmediata por SatO₂ < 92%","Salbutamol nebulizado continuo + ipratropio nebulizado + metilprednisolona IV","Adrenalina subcutánea como broncodilatador de rescate extremo","Teofilina IV para potenciar la broncodilatación","CPAP como primera medida ventilatoria antes de broncodilatadores"],
+        correct: 1,
+        explanation: "El manejo inicial de la crisis asmática grave es: SABA continuo (salbutamol nebulizado c/20 min o continuo) + ipratropio nebulizado + corticoide sistémico (metilprednisolona 40-80 mg IV) + O₂ para SatO₂ ≥ 93%. La intubación se reserva para fracaso de este tratamiento."
+      },
+      {
+        text: "¿Qué indica el control del asma de esta paciente antes de la crisis (uso de salbutamol 3-4 veces/semana)?",
+        options: ["Asma bien controlada porque usa la medicación de rescate menos de una vez al día","Asma parcialmente controlada que requiere solo refuerzo de técnica inhalatoria","Asma no controlada que debería haber escalado el tratamiento controlador","Asma de difícil control que requiere omalizumab desde el inicio del tratamiento","Control adecuado; el uso de rescate no refleja el nivel de control del asma"],
+        correct: 2,
+        explanation: "Según GINA, el uso de SABA > 2 veces por semana indica asma no controlada y es indicación de intensificar el tratamiento controlador (subir escalón terapéutico). Con 3-4 usos semanales la paciente tenía señales claras de escalada necesaria antes de la crisis."
+      }
+    ]
+  },
+  {
+    id: 8,
+    title: "ACV isquémico agudo",
+    specialty: "neuro",
+    specialtyLabel: "Neurología",
+    vignette: `Hombre de 70 años con fibrilación auricular crónica (sin anticoagulación), HTA e hiperlipidemia. Traído a urgencias 80 minutos después de ser encontrado caído sin poder levantarse ni hablar.
+
+Alerta, no sigue comandos. Afasia global (sin fluencia, comprensión ni repetición). Desviación forzada de la mirada hacia la izquierda. Paresia facial central derecha. Hemiplejia densa MMSS derecho (0/5), paresia MMII ipsilateral (vence gravedad, no resistencia). Fuerza izquierda 5/5. TA 188/100 mmHg. NIHSS: 22 puntos.`,
+    paraclinical: `TC simple de cráneo: sin hemorragia intracraneal, sin efecto de masa, sin hipodensidad establecida. Signo de la cuerda positivo en la ACM izquierda (hiperdensidad focal de la ACM izquierda en corte axial a nivel de ganglios basales).`,
+    questions: [
+      {
+        text: "El signo de la cuerda positivo en la TC simple (hiperdensidad de la ACM izquierda) corresponde a:",
+        options: ["Hemorragia subaracnoidea en la cisterna silviana izquierda","Calcificación de la pared arterial en aterosclerosis crónica","Trombo intraluminal en la arteria cerebral media izquierda como causa del ACV","Artefacto de la TC sin significado clínico","Infarto hemorrágico ya establecido con transformación hemática"],
+        correct: 2,
+        explanation: "El signo de la cuerda (dense MCA sign) corresponde a la hiperdensidad del coágulo intraluminal en la ACM en la TC simple. Es un signo indirecto de oclusión arterial por trombo y predice infarto extenso del territorio de la ACM."
+      },
+      {
+        text: "¿Cuál es la conducta correcta con la PA de 188/100 mmHg antes de decidir sobre trombolisis?",
+        options: ["Reducir la PA de forma agresiva a < 140/90 mmHg antes de cualquier decisión terapéutica","No tratar la PA; la hipertensión es una respuesta fisiológica neuroprotectora en el ACV agudo","Si el paciente es candidato a trombolisis, reducir la PA a < 185/110 mmHg antes de administrar tPA","Administrar tPA independientemente de la PA sin necesidad de tratarla","Contraindicar trombolisis de forma absoluta con PA > 180/100 mmHg"],
+        correct: 2,
+        explanation: "El umbral para trombolisis requiere PA < 185/110 mmHg. Si la PA está entre 185-220 mmHg se puede reducir suavemente con labetalol IV o nicardipina IV para alcanzar ese umbral. No se hace reducción agresiva (< 140) porque deteriora la perfusión de la penumbra isquémica."
+      },
+      {
+        text: "¿Cuál es la dosis correcta de alteplasa en ACV isquémico?",
+        options: ["0.6 mg/kg IV (máximo 60 mg), 10% en bolo y 90% en infusión de 30 minutos","0.9 mg/kg IV (máximo 90 mg), 10% en bolo en 1 minuto y 90% en infusión de 60 minutos","1.5 millones UI en infusión de 60 minutos como en el infarto de miocardio","100 mg IV en infusión de 2 horas independientemente del peso","0.9 mg/kg IV (máximo 90 mg), administración en bolo único sin infusión"],
+        correct: 1,
+        explanation: "La dosis de alteplasa en ACV isquémico es 0.9 mg/kg IV (máximo 90 mg): el 10% se da en bolo IV en 1 minuto y el 90% restante en infusión continua de 60 minutos. Esta dosis es diferente a la usada en IAM."
+      },
+      {
+        text: "Dado el NIHSS de 22 y la oclusión de ACM, ¿qué procedimiento adicional al tPA IV está indicado si hay disponibilidad?",
+        options: ["Craniectomía descompresiva profiláctica ante infarto extenso inminente","Trombectomía mecánica endovascular","Anticoagulación plena inmediata con heparina IV para prevenir propagación","Segunda dosis de alteplasa a las 6 horas si no hay mejoría clínica","Nimodipina IV profiláctica para prevenir vasoespasmo secundario"],
+        correct: 1,
+        explanation: "La trombectomía mecánica está indicada en ACV isquémico con oclusión de gran vaso (ACM, ACI, basilar), NIHSS ≥ 6, ASPECTS ≥ 6, ventana de hasta 24 horas en pacientes seleccionados. Es complementaria al tPA IV. Con NIHSS 22 y oclusión de ACM, es indicación clara."
+      },
+      {
+        text: "¿Cuál es la causa más probable del ACV y cómo debe orientarse la anticoagulación secundaria?",
+        options: ["ACV aterotrombótico; antiagregación dual con AAS + clopidogrel por 3 meses","ACV cardioembólico por FA; anticoagulación oral crónica con NACO (apixabán o rivaroxabán)","ACV lacunar por HTA; antiagregación simple con AAS indefinida","ACV criptogénico; no se indica anticoagulación sin fuente embolígena confirmada","ACV cardioembólico; warfarina como anticoagulante de primera elección sobre los NACO"],
+        correct: 1,
+        explanation: "FA crónica sin anticoagulación + ACV con afasia global + hemiplejia densa = ACV cardioembólico. Los NACO (apixabán, rivaroxabán, dabigatrán, edoxabán) son superiores a la warfarina en FA no valvular para prevención secundaria de ACV."
+      }
+    ]
+  },
+  {
+    id: 9,
+    title: "Herpes zóster diseminado",
+    specialty: "derm",
+    specialtyLabel: "Dermatología",
+    vignette: `Mujer de 67 años con LLC en manejo con ibrutinib, HTA y DM2. Aparición hace 5 días de lesiones en hemitórax izquierdo (de la línea media dorsal a la línea axilar anterior), precedidas por dolor tipo ardor 2 días antes. Fiebre de 38°C los primeros 2 días.
+
+Examen dermatológico: banda eritematosa siguiendo el dermatoma T6 izquierdo con múltiples vesículas agrupadas sobre base eritematosa, algunas con contenido turbio. Distribución estrictamente unilateral. Algunas lesiones rotas con costra melicérica. Lesiones satélite aisladas a 4 cm de la placa principal.`,
+    paraclinical: `Distribución: dermatomérica unilateral (T6), no cruza la línea media. Lesiones satélite fuera del dermatoma primario (> 20 vesículas diseminadas). Inmunocompromiso activo (LLC + ibrutinib).`,
+    questions: [
+      {
+        text: "¿Cuál es el diagnóstico más probable y qué característica clínica es patognomónica?",
+        options: ["Impétigo ampolloso: vesículas con contenido turbio y costra melicérica en paciente inmunocompetente","Dermatitis de contacto alérgica: distribución en banda por contacto con ropa o correa","Herpes zóster: vesículas agrupadas en distribución dermatomérica unilateral sin cruzar la línea media","Varicela diseminada: vesículas en diferentes estadios de evolución en distribución difusa","Eritema multiforme: lesiones en diana simétricas en extremidades y tronco"],
+        correct: 2,
+        explanation: "El herpes zóster se caracteriza por: 1) pródromo doloroso antes de las lesiones, 2) distribución dermatomérica estrictamente unilateral, 3) no cruza la línea media. Las lesiones satélite fuera del dermatoma en un inmunocomprometido indican zóster diseminado."
+      },
+      {
+        text: "Las lesiones satélite fuera del dermatoma en esta paciente inmunocomprometida indican:",
+        options: ["Sobreinfección bacteriana con diseminación linfática regional","Zóster diseminado, definido por > 20 vesículas fuera del dermatoma primario o compromiso visceral","Fenómeno de Koebner en cicatrices previas de la pared torácica","Reactivación concomitante de VHS-1 por la inmunosupresión del ibrutinib","Lesiones satélite sin significado clínico adicional en inmunocomprometidos"],
+        correct: 1,
+        explanation: "El zóster diseminado se define por la aparición de > 20 vesículas fuera del dermatoma primario o compromiso de órganos internos. Es más frecuente en inmunocomprometidos (LLC, VIH, corticoides crónicos). Cambia el manejo: requiere hospitalización y aciclovir IV."
+      },
+      {
+        text: "¿Cuál es el manejo correcto para esta paciente inmunocomprometida con zóster diseminado?",
+        options: ["Aciclovir 800 mg oral 5 veces al día por 7 días y manejo ambulatorio","Valaciclovir 1 g oral 3 veces al día por 7 días como equivalente oral de alta absorción","Aciclovir IV 10-15 mg/kg cada 8 horas en hospitalización","Foscarnet IV como alternativa al aciclovir en todos los inmunocomprometidos","Observación; el zóster diseminado en inmunocomprometidos tiene resolución espontánea"],
+        correct: 2,
+        explanation: "El zóster diseminado en inmunocomprometidos requiere hospitalización y aciclovir IV (10-15 mg/kg c/8h, ajustado a función renal). La vía oral tiene biodisponibilidad insuficiente en este contexto. El foscarnet se reserva para aciclovir-resistencia."
+      },
+      {
+        text: "¿Cuál es la complicación más frecuente y temida a largo plazo del herpes zóster?",
+        options: ["Sobreinfección bacteriana de las lesiones por Staphylococcus aureus","Neuralgia posherpética: dolor neuropático persistente > 3 meses tras la resolución","Cicatrices queloides en el área del dermatoma afectado","Meningitis viral por extensión directa al sistema nervioso central","Recurrencia inmediata del zóster en el mismo dermatoma dentro de los 30 días"],
+        correct: 1,
+        explanation: "La neuralgia posherpética (NPH) es la complicación más frecuente: dolor quemante y alodinia persistentes > 3 meses. Afecta al 10-15% y hasta el 40% en mayores de 70 años. Se trata con gabapentina, pregabalina, antidepresivos tricíclicos y parches de lidocaína o capsaicina."
+      },
+      {
+        text: "¿Cuál es la lesión elemental INICIAL del herpes zóster antes de la fase vesicular?",
+        options: ["Mácula eritematosa que progresa a pápula eritematosa","Vesícula directamente desde piel sana sin lesión previa","Pústula inicial que evoluciona a vesícula al resolverse la infección","Nódulo subcutáneo doloroso sin cambio epidérmico inicial","Placa urticariforme pruriginosa antes de la vesiculación"],
+        correct: 0,
+        explanation: "La secuencia dermatológica del herpes zóster es: mácula eritematosa → pápula → vesícula sobre base eritematosa → pústula → costra. La lesión elemental 'inicial' es la mácula/pápula eritematosa antes de la vesiculación clásica."
+      }
+    ]
+  }
+];
+
+const SPECIALTY_COLORS = {
+  cardio: { bg: 'var(--pill-cardio-bg)', color: 'var(--pill-cardio)' },
+  meta:   { bg: 'var(--pill-meta-bg)',  color: 'var(--pill-meta)' },
+  neumo:  { bg: 'var(--pill-neumol-bg)', color: 'var(--pill-neumol)' },
+  neuro:  { bg: 'var(--pill-neuro-bg)', color: 'var(--pill-neuro)' },
+  derm:   { bg: 'var(--pill-derm-bg)', color: 'var(--pill-derm)' }
+};
+
+let state = {
+  current: -1,
+  answers: CASES.map(c => Array(c.questions.length).fill(null))
+};
+
+function totalAnswered() {
+  return state.answers.reduce((s, a) => s + a.filter(x => x !== null).length, 0);
+}
+function totalCorrect() {
+  return state.answers.reduce((s, a, ci) =>
+    s + a.filter((ans, qi) => ans === CASES[ci].questions[qi].correct).length, 0);
+}
+function totalQuestions() {
+  return CASES.reduce((s, c) => s + c.questions.length, 0);
+}
+function caseAnswered(ci) {
+  return state.answers[ci].filter(x => x !== null).length;
+}
+function caseTotal(ci) { return CASES[ci].questions.length; }
+
+function updateHeader() {
+  document.getElementById('total-answered').textContent = totalAnswered();
+  document.getElementById('total-questions').textContent = totalQuestions();
+  document.getElementById('total-correct').textContent = totalCorrect();
+}
+
+function renderSidebar() {
+  const sb = document.getElementById('sidebar');
+  let html = '';
+
+  const groups = [
+    { label: 'Cardio · SCA & Falla', ids: [0,1,2] },
+    { label: 'Metabólico', ids: [3,4,5] },
+    { label: 'Neumología', ids: [6,7] },
+    { label: 'Neurología', ids: [8] },
+    { label: 'Dermatología', ids: [9] }
+  ];
+
+  html += `<div class="sidebar-section"><button class="nav-case ${state.current === -1 ? 'active' : ''}" onclick="showWelcome()">
+    <div class="nav-num">✦</div>
+    <div class="nav-case-name">Inicio</div>
+  </button></div>`;
+
+  groups.forEach(g => {
+    html += `<div class="sidebar-divider"></div><div class="sidebar-section"><div class="sidebar-label">${g.label}</div>`;
+    g.ids.forEach(id => {
+      const done = caseAnswered(id);
+      const total = caseTotal(id);
+      const active = state.current === id;
+      let checkHtml = '';
+      if (done === total && total > 0) checkHtml = `<div class="nav-check done">✓</div>`;
+      else if (done > 0) checkHtml = `<div class="nav-check partial"></div>`;
+      else checkHtml = `<div class="nav-check"></div>`;
+
+      html += `<button class="nav-case ${active ? 'active' : ''}" onclick="showCase(${id})">
+        <div class="nav-num">${id+1}</div>
+        <div class="nav-case-name">${CASES[id].title}</div>
+        ${checkHtml}
+      </button>`;
+    });
+    html += '</div>';
+  });
+
+  sb.innerHTML = html;
+}
+
+function showWelcome() {
+  state.current = -1;
+  renderSidebar();
+  const sp = [
+    { label: 'Falla cardiaca · SCA', info: '3 casos · 15 preguntas', key: 'cardio' },
+    { label: 'Metabólico · DM · ERC', info: '3 casos · 13 preguntas', key: 'meta' },
+    { label: 'Neumología', info: '2 casos · 8 preguntas', key: 'neumo' },
+    { label: 'Neurología', info: '1 caso · 5 preguntas', key: 'neuro' },
+    { label: 'Dermatología', info: '1 caso · 5 preguntas', key: 'derm' },
+  ];
+  const specCards = sp.map(s => {
+    const c = SPECIALTY_COLORS[s.key];
+    return `<div class="spec-card">
+      <div class="spec-card-title" style="color: ${c.color}">${s.label}</div>
+      <div class="spec-card-info">${s.info}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('main-content').innerHTML = `
+    <div class="welcome">
+      <div class="case-header">
+        <div class="case-title">Banco de preguntas ECOE</div>
+        <div class="case-meta">Medicina Interna · 10 casos clínicos · 46 preguntas</div>
+      </div>
+      <p class="welcome-sub">Casos clínicos de razonamiento aplicado con retroalimentación inmediata. Selecciona un caso en el panel izquierdo para comenzar.</p>
+      <div class="spec-grid">${specCards}</div>
+      <button class="btn btn-primary" onclick="showCase(0)">Comenzar con el caso 1 →</button>
+    </div>`;
+}
+
+function showCase(id) {
+  state.current = id;
+  renderSidebar();
+  const c = CASES[id];
+  const col = SPECIALTY_COLORS[c.specialty];
+  const answered = caseAnswered(id);
+  const total = caseTotal(id);
+  const pct = Math.round(answered / total * 100);
+
+  let questionsHtml = c.questions.map((q, qi) => {
+    const userAns = state.answers[id][qi];
+    const answered = userAns !== null;
+    return `<div class="question-card ${answered ? 'answered' : ''}" id="qcard-${id}-${qi}">
+      <div class="q-header">
+        <div class="q-num">${qi+1}</div>
+        <div class="q-text">${q.text}</div>
+      </div>
+      <div class="options">
+        ${q.options.map((opt, oi) => {
+          let cls = '';
+          if (answered) {
+            if (oi === q.correct) cls = 'correct';
+            else if (oi === userAns && userAns !== q.correct) cls = 'wrong';
+          }
+          return `<button class="option-btn ${cls}" ${answered ? 'disabled' : ''} onclick="answer(${id},${qi},${oi})">
+            <div class="opt-letter">${String.fromCharCode(65+oi)}</div>
+            <span>${opt}</span>
+          </button>`;
+        }).join('')}
+      </div>
+      <div class="feedback ${answered ? 'show' : ''} ${answered ? (userAns === q.correct ? 'correct' : 'wrong') : ''}" id="fb-${id}-${qi}">
+        ${answered ? `<strong>${userAns === q.correct ? '✓ Correcto.' : `✗ Incorrecto. La respuesta correcta es ${String.fromCharCode(65+q.correct)}.`}</strong> ${q.explanation}` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  const prevBtn = id > 0 ? `<button class="btn" onclick="showCase(${id-1})">← Caso ${id}</button>` : '<span></span>';
+  const nextBtn = id < CASES.length - 1
+    ? `<button class="btn btn-primary" onclick="showCase(${id+1})">Caso ${id+2} →</button>`
+    : `<button class="btn btn-primary" onclick="showResults()">Ver resultados →</button>`;
+
+  document.getElementById('main-content').innerHTML = `
+    <div>
+      <div class="case-header">
+        <div class="specialty-pill" style="background: ${col.bg}; color: ${col.color}">${c.specialtyLabel}</div>
+        <div class="case-title">${c.title}</div>
+        <div class="case-meta">Caso ${id+1} de ${CASES.length} · ${total} preguntas</div>
+      </div>
+
+      <div class="vignette">
+        <div class="vignette-label">Caso clínico</div>
+        ${c.vignette.replace(/\n\n/g, '</p><p style="margin-top:0.75rem">').replace(/^/, '<p>').replace(/$/, '</p>')}
+        ${c.paraclinical ? `<div class="vignette-highlight">Paraclínicos · ${c.paraclinical}</div>` : ''}
+      </div>
+
+      <div class="case-progress">
+        <span class="progress-label">${answered}/${total} respondidas</span>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+        <span class="progress-label">${pct}%</span>
+      </div>
+
+      ${questionsHtml}
+
+      <div class="case-nav">
+        ${prevBtn}
+        ${nextBtn}
+      </div>
+    </div>`;
+}
+
+function answer(caseId, qIdx, optIdx) {
+  if (state.answers[caseId][qIdx] !== null) return;
+  state.answers[caseId][qIdx] = optIdx;
+  updateHeader();
+  showCase(caseId);
+  setTimeout(() => {
+    const el = document.getElementById(`qcard-${caseId}-${qIdx}`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 80);
+}
+
+function showResults() {
+  state.current = 'results';
+  renderSidebar();
+  const total = totalQuestions();
+  const correct = totalCorrect();
+  const answered = totalAnswered();
+  const pct = Math.round(correct / total * 100);
+
+  const bySpec = [
+    { label: 'Falla cardiaca · SCA', ids: [0,1,2], key: 'cardio' },
+    { label: 'Metabólico', ids: [3,4,5], key: 'meta' },
+    { label: 'Neumología', ids: [6,7], key: 'neumo' },
+    { label: 'Neurología', ids: [8], key: 'neuro' },
+    { label: 'Dermatología', ids: [9], key: 'derm' }
+  ].map(g => {
+    const gTotal = g.ids.reduce((s, id) => s + caseTotal(id), 0);
+    const gAns = g.ids.reduce((s, id) => s + state.answers[id].filter(x => x !== null).length, 0);
+    const gCorrect = g.ids.reduce((s, ci) =>
+      s + state.answers[ci].filter((ans, qi) => ans !== null && ans === CASES[ci].questions[qi].correct).length, 0);
+    const col = SPECIALTY_COLORS[g.key];
+    const gpct = gTotal > 0 && gAns > 0 ? Math.round(gCorrect / gAns * 100) : 0;
+    return `<div style="display:flex; align-items:center; gap:12px; padding: 10px 0; border-bottom: 1px solid var(--border);">
+      <span class="specialty-pill" style="background:${col.bg}; color:${col.color}; font-size:10px; padding: 2px 8px; min-width: 110px; justify-content: center;">${g.label}</span>
+      <div style="flex:1;">
+        <div style="height:6px; background: var(--border); border-radius:3px; overflow:hidden;">
+          <div style="height:100%; width:${gpct}%; background: ${col.color}; border-radius:3px; transition: width 0.6s ease;"></div>
+        </div>
+      </div>
+      <span style="font-size:13px; color: var(--muted); min-width: 80px; text-align:right; font-variant-numeric: tabular-nums;">${gCorrect}/${gAns} correctas</span>
+    </div>`;
+  }).join('');
+
+  const grade = pct >= 90 ? '¡Excelente dominio!' : pct >= 75 ? 'Buen desempeño' : pct >= 60 ? 'Desempeño aceptable' : 'Repasa los temas con menor puntaje';
+
+  document.getElementById('main-content').innerHTML = `
+    <div style="max-width: 640px;">
+      <div class="results-card">
+        <div class="results-score-big">${pct}%</div>
+        <div class="results-label">${grade}</div>
+        <div class="results-grid">
+          <div class="result-stat"><strong>${correct}</strong>Correctas</div>
+          <div class="result-stat"><strong>${answered - correct}</strong>Incorrectas</div>
+          <div class="result-stat"><strong>${total - answered}</strong>Sin responder</div>
+        </div>
+      </div>
+
+      <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1.5rem; margin-bottom: 1.5rem;">
+        <div style="font-size: 13px; font-weight: 600; margin-bottom: 1rem; color: var(--text);">Desempeño por especialidad</div>
+        ${bySpec}
+      </div>
+
+      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button class="btn btn-primary" onclick="showCase(0)">Reiniciar desde el caso 1</button>
+        <button class="btn" onclick="showWelcome()">← Volver al inicio</button>
+      </div>
+    </div>`;
+}
+
+// Init
+updateHeader();
+showWelcome();
+</script>
+</body>
+</html>
